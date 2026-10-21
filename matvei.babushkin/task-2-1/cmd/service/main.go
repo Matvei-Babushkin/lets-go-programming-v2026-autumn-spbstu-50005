@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 )
@@ -12,6 +13,11 @@ const (
 
 	minCount = 1
 	maxCount = 1000
+)
+
+var (
+	errInvalidOperator    = errors.New("invalid operator")
+	errInvalidWorkerCount = errors.New("invalid worker count")
 )
 
 type temperatureRange struct {
@@ -39,7 +45,7 @@ func (r *temperatureRange) update(operator string, temperature int) error {
 		}
 
 	default:
-		return fmt.Errorf("invalid operator: %s", operator)
+		return fmt.Errorf("%w: %s", errInvalidOperator, operator)
 	}
 
 	return nil
@@ -61,14 +67,16 @@ func processDepartment() error {
 	}
 
 	if workerCount < minCount || workerCount > maxCount {
-		return fmt.Errorf("invalid worker count: %d", workerCount)
+		return fmt.Errorf("%w: %d", errInvalidWorkerCount, workerCount)
 	}
 
 	bounds := newTemperatureRange()
 
 	for range workerCount {
-		var operator string
-		var temperature int
+		var (
+			operator    string
+			temperature int
+		)
 
 		if _, err := fmt.Scan(&operator, &temperature); err != nil {
 			return fmt.Errorf("failed to read temperature: %w", err)
@@ -91,17 +99,20 @@ func main() {
 
 	if _, err := fmt.Scan(&departmentCount); err != nil {
 		log.Print(err)
+
 		return
 	}
 
 	if departmentCount < minCount || departmentCount > maxCount {
 		log.Print("invalid department count")
+
 		return
 	}
 
 	for range departmentCount {
 		if err := processDepartment(); err != nil {
 			log.Print(err)
+
 			return
 		}
 	}
